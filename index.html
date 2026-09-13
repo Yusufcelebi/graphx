@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Matematiksel Grafik & Fonksiyon Analiz Laboratuvarı</title>
+  <title>GraphStudio - Fonksiyon & Kalkülüs Laboratuvarı</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -11,9 +11,11 @@
       --border-color: #334155;
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
-      --accent: #38bdf8;
-      --accent-hover: #0ea5e9;
+      --accent-f: #38bdf8;
+      --accent-g: #a855f7;
       --derivative-color: #f43f5e;
+      --tangent-color: #eab308;
+      --integral-fill: rgba(56, 189, 248, 0.25);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html {
@@ -22,45 +24,63 @@
       background-color: var(--bg-dark); color: var(--text-primary);
     }
     .app-layout { display: flex; width: 100vw; height: 100vh; }
+    
+    /* Sidebar */
     .sidebar {
-      width: 360px; background-color: var(--panel-bg); border-right: 1px solid var(--border-color);
-      padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto; z-index: 10;
+      width: 380px; background-color: var(--panel-bg); border-right: 1px solid var(--border-color);
+      padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; z-index: 10;
     }
-    .brand h2 { font-size: 1.4rem; letter-spacing: -0.5px; }
-    .brand span { color: var(--accent); }
-    .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
-    .control-group label, .preset-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); }
-    input[type="text"] {
+    .brand { display: flex; justify-content: space-between; align-items: center; }
+    .brand h2 { font-size: 1.3rem; }
+    .brand span { color: var(--accent-f); }
+    .share-btn {
+      background: transparent; border: 1px solid var(--border-color); color: var(--text-primary);
+      padding: 0.35rem 0.6rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+    }
+    .share-btn:hover { border-color: var(--accent-f); color: var(--accent-f); }
+
+    .control-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .control-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+    .input-f { color: var(--accent-f) !important; font-weight: 600; }
+    .input-g { color: var(--accent-g) !important; font-weight: 600; }
+
+    input[type="text"], input[type="number"] {
       width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color);
-      border-radius: 8px; padding: 0.75rem; color: var(--text-primary); font-family: monospace; font-size: 1rem; outline: none;
+      border-radius: 6px; padding: 0.55rem; color: var(--text-primary); font-family: monospace; font-size: 0.9rem; outline: none;
     }
-    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent-f); }
+
     .btn {
       background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-primary);
-      padding: 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+      padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
     }
-    .btn-accent { background: var(--accent); color: #0f172a; border-color: var(--accent); }
-    .btn-accent:hover { background: var(--accent-hover); }
-    .analysis-panel { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; font-size: 0.85rem; }
-    .analysis-panel.hidden { display: none; }
-    .analysis-panel h3 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--accent); }
-    .analysis-content p { margin-bottom: 0.4rem; color: var(--text-secondary); }
-    .analysis-content strong { color: var(--text-primary); }
-    .slider-box { background: var(--bg-dark); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); }
-    .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .icon-btn { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
-    .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; }
-    .preset-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem; }
-    .preset-btn { background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.45rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
-    .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .instructions { margin-top: auto; font-size: 0.75rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 0.75rem; }
+    .btn-accent { background: var(--accent-f); color: #0f172a; border-color: var(--accent-f); }
+    .btn-accent:hover { opacity: 0.9; }
+    
+    .panel-box {
+      background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; font-size: 0.8rem;
+    }
+    .panel-box h3 { font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--accent-f); }
+
+    .row-2 { display: flex; gap: 0.5rem; align-items: center; }
+    .row-2 > * { flex: 1; }
+
+    .toggles { display: flex; flex-direction: column; gap: 0.4rem; }
+    .checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; }
+
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    /* Canvas Alanı */
     .canvas-container { flex: 1; position: relative; height: 100%; }
     canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
-    .coord-hud {
-      position: absolute; bottom: 1rem; right: 1rem; background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--border-color); padding: 0.4rem 0.8rem; border-radius: 6px;
-      font-family: monospace; font-size: 0.85rem; color: var(--text-secondary); pointer-events: none;
+    
+    .hud-box {
+      position: absolute; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: var(--text-secondary); pointer-events: none;
     }
+    .coord-hud { bottom: 1rem; right: 1rem; }
+    .tangent-hud { top: 1rem; right: 1rem; color: var(--tangent-color); border-color: var(--tangent-color); }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -68,75 +88,103 @@
     <aside class="sidebar">
       <div class="brand">
         <h2>Graph<span>Studio</span></h2>
+        <button id="share-btn" class="share-btn" title="Bağlantıyı Kopyala">🔗 Paylaş</button>
       </div>
 
+      <!-- Fonksiyon f(x) -->
       <div class="control-group">
-        <label for="func-input">Fonksiyon $f(x)$:</label>
-        <input type="text" id="func-input" value="x^3 - 3*x" placeholder="Örn: x^2 - 4" />
+        <label for="func-f">1. Fonksiyon $f(x)$ (Mavi):</label>
+        <input type="text" id="func-f" class="input-f" value="x^3 - 3*x" placeholder="Örn: x^2 - 4" />
       </div>
 
-      <button id="analyze-btn" class="btn btn-accent">🔍 Fonksiyonu Analiz Et</button>
-
-      <div id="analysis-panel" class="analysis-panel hidden">
-        <h3>📊 Fonksiyon Raporu</h3>
-        <div class="analysis-content" id="analysis-content"></div>
+      <!-- Fonksiyon g(x) -->
+      <div class="control-group">
+        <label for="func-g">2. Fonksiyon $g(x)$ (Mor) [Opsiyonel]:</label>
+        <input type="text" id="func-g" class="input-g" value="2*x" placeholder="Örn: 2*x + 1" />
       </div>
 
+      <!-- Analiz Butonu & Paneli -->
+      <button id="analyze-btn" class="btn btn-accent">🔍 Kök & Kesişim Analizi Yap</button>
+      <div id="analysis-panel" class="panel-box hidden">
+        <h3>📊 Analiz Raporu</h3>
+        <div id="analysis-content"></div>
+      </div>
+
+      <!-- İntegral & Alan Hesabı Bölümü -->
+      <div class="panel-box">
+        <h3>📐 Belirli İntegral $\int_a^b f(x)dx$</h3>
+        <div class="row-2" style="margin-bottom: 0.5rem;">
+          <input type="number" id="int-a" value="-1" step="0.5" placeholder="Alt (a)" />
+          <input type="number" id="int-b" value="2" step="0.5" placeholder="Üst (b)" />
+        </div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-integral" checked />
+          <span>Alanı Göster ve Hesapla</span>
+        </label>
+        <div id="integral-result" style="margin-top: 0.4rem; font-family: monospace; font-weight: bold; color: var(--accent-f);"></div>
+      </div>
+
+      <!-- Seçenekler & Türev -->
       <div class="toggles">
         <label class="checkbox-label">
           <input type="checkbox" id="show-derivative" />
-          <span>Türevini Göster ($f'(x)$)</span>
+          <span>$f'(x)$ Türev Eğrisini Göster</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="enable-tangent" checked />
+          <span>Tıklanan Noktada Teğet Doğrusunu Çiz</span>
         </label>
       </div>
 
-      <div class="control-group slider-box">
-        <div class="slider-header">
-          <label for="param-a">Parametre a = <span id="param-val">1.0</span></label>
-          <button id="animate-btn" class="icon-btn">▶ Oynat</button>
+      <!-- Parametre Slider -->
+      <div class="panel-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span>Parametre $a$ = <b id="param-val">1.0</b></span>
+          <button id="animate-btn" class="share-btn">▶ Oynat</button>
         </div>
-        <input type="range" id="param-a" min="-5" max="5" step="0.1" value="1" />
+        <input type="range" id="param-a" min="-5" max="5" step="0.1" value="1" style="width:100%;" />
       </div>
 
-      <div class="preset-group">
-        <label>Örnek Fonksiyonlar:</label>
-        <div class="preset-buttons">
-          <button class="preset-btn" data-expr="x^3 - 3*x">Polinom (3. Derece)</button>
-          <button class="preset-btn" data-expr="x^2 - 4">Kök Analizi (x^2-4)</button>
-          <button class="preset-btn" data-expr="sin(a * x)">Trigonometrik</button>
-          <button class="preset-btn" data-expr="exp(-x^2 / 2)">Gaussian</button>
-        </div>
-      </div>
-
-      <div class="view-controls">
-        <button id="reset-view-btn" class="btn btn-secondary" style="width:100%;">Görünümü Sıfırla (0,0)</button>
-      </div>
-
-      <div class="instructions">
-        <p>💡 Sürükleyerek kaydırın, tekerlekle yakınlaşın.</p>
+      <!-- İşlemler & Dışa Aktarma -->
+      <div class="actions-grid">
+        <button id="reset-view-btn" class="btn">Görünümü Sıfırla</button>
+        <button id="export-png-btn" class="btn" style="border-color: #10b981; color: #10b981;">📷 PNG İndir</button>
       </div>
     </aside>
 
     <main class="canvas-container">
       <canvas id="graph-canvas"></canvas>
-      <div id="coord-hud" class="coord-hud">x: 0.00, y: 0.00</div>
+      <div id="tangent-hud" class="hud-box tangent-hud hidden"></div>
+      <div id="coord-hud" class="hud-box coord-hud">x: 0.00, y: 0.00</div>
     </main>
   </div>
 
   <script>
     const canvas = document.getElementById('graph-canvas');
     const ctx = canvas.getContext('2d');
-    const funcInput = document.getElementById('func-input');
+    
+    // UI Elemanları
+    const funcFInput = document.getElementById('func-f');
+    const funcGInput = document.getElementById('func-g');
     const showDerivativeCheckbox = document.getElementById('show-derivative');
+    const enableTangentCheckbox = document.getElementById('enable-tangent');
+    const showIntegralCheckbox = document.getElementById('show-integral');
+    const intAInput = document.getElementById('int-a');
+    const intBInput = document.getElementById('int-b');
+    const integralResult = document.getElementById('integral-result');
     const paramSlider = document.getElementById('param-a');
     const paramValLabel = document.getElementById('param-val');
     const animateBtn = document.getElementById('animate-btn');
     const resetBtn = document.getElementById('reset-view-btn');
-    const coordHud = document.getElementById('coord-hud');
-    const presetButtons = document.querySelectorAll('.preset-btn');
+    const exportPngBtn = document.getElementById('export-png-btn');
+    const shareBtn = document.getElementById('share-btn');
     const analyzeBtn = document.getElementById('analyze-btn');
     const analysisPanel = document.getElementById('analysis-panel');
     const analysisContent = document.getElementById('analysis-content');
+    const coordHud = document.getElementById('coord-hud');
+    const tangentHud = document.getElementById('tangent-hud');
 
+    // Durum Değişkenleri
     let width, height;
     let scale = 60;
     let origin = { x: 0, y: 0 };
@@ -145,41 +193,64 @@
     let isAnimating = false;
     let animSpeed = 0.02;
 
+    let tangentX0 = null; // Tıklanan teğet noktası
     let detectedRoots = [];
     let detectedExtrema = [];
-    let scanProgress = -1;
+    let detectedIntersections = [];
     let isAnalyzing = false;
 
-    function parseMathExpression(str) {
-      if (!str || !str.trim()) return null;
-      let expr = str.toLowerCase();
-      expr = expr.replace(/\^/g, '**');
-
+    // Matematik Ayrıştırıcı
+    function parseMathExpression(str, inputElem) {
+      if (!str || !str.trim()) {
+        if (inputElem) inputElem.style.borderColor = "var(--border-color)";
+        return null;
+      }
+      let expr = str.toLowerCase().replace(/\^/g, '**');
       const funcs = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sqrt', 'abs', 'exp', 'log', 'ln'];
       funcs.forEach(fn => {
         const target = fn === 'ln' ? 'Math.log' : `Math.${fn}`;
-        const regex = new RegExp(`\\b${fn}\\b`, 'g');
-        expr = expr.replace(regex, target);
+        expr = expr.replace(new RegExp(`\\b${fn}\\b`, 'g'), target);
       });
-
-      expr = expr.replace(/\bpi\b/g, 'Math.PI');
-      expr = expr.replace(/\be\b/g, 'Math.E');
-      expr = expr.replace(/(\d)([a-zA-Z(])/g, '$1*$2');
-      expr = expr.replace(/([a-zA-Z)])(\d)/g, '$1*$2');
-      expr = expr.replace(/(\))(\()/g, '$1*$2');
+      expr = expr.replace(/\bpi\b/g, 'Math.PI').replace(/\be\b/g, 'Math.E');
+      expr = expr.replace(/(\d)([a-zA-Z(])/g, '$1*$2').replace(/([a-zA-Z)])(\d)/g, '$1*$2').replace(/(\))(\()/g, '$1*$2');
 
       try {
         const fn = new Function('x', 'a', `try { return ${expr}; } catch(e) { return NaN; }`);
         fn(1, 1);
-        funcInput.style.borderColor = "var(--border-color)";
+        if (inputElem) inputElem.style.borderColor = "var(--border-color)";
         return fn;
       } catch (err) {
-        funcInput.style.borderColor = "var(--derivative-color)";
+        if (inputElem) inputElem.style.borderColor = "var(--derivative-color)";
         return null;
       }
     }
 
-    let currentFunc = parseMathExpression(funcInput.value);
+    let funcF = parseMathExpression(funcFInput.value, funcFInput);
+    let funcG = parseMathExpression(funcGInput.value, funcGInput);
+
+    // URL Parametreleri Yükleme & Paylaşım
+    function loadURLParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('f')) funcFInput.value = params.get('f');
+      if (params.has('g')) funcGInput.value = params.get('g');
+      if (params.has('a')) {
+        paramSlider.value = params.get('a');
+        paramValLabel.textContent = params.get('a');
+      }
+      funcF = parseMathExpression(funcFInput.value, funcFInput);
+      funcG = parseMathExpression(funcGInput.value, funcGInput);
+    }
+
+    shareBtn.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('f', funcFInput.value);
+      if (funcGInput.value.trim()) url.searchParams.set('g', funcGInput.value);
+      else url.searchParams.delete('g');
+      url.searchParams.set('a', paramSlider.value);
+      navigator.clipboard.writeText(url.toString());
+      shareBtn.textContent = "✓ Kopyalandı!";
+      setTimeout(() => shareBtn.textContent = "🔗 Paylaş", 2000);
+    });
 
     function resizeCanvas() {
       width = canvas.parentElement.clientWidth;
@@ -187,7 +258,6 @@
       canvas.width = width * window.devicePixelRatio;
       canvas.height = height * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      
       if (origin.x === 0 && origin.y === 0) {
         origin.x = width / 2;
         origin.y = height / 2;
@@ -200,69 +270,66 @@
     const toMathX = (px) => (px - origin.x) / scale;
     const toMathY = (py) => (origin.y - py) / scale;
 
-    function evaluateFunc(xVal, paramA) {
-      if (!currentFunc) return NaN;
-      try {
-        return currentFunc(xVal, paramA);
-      } catch {
-        return NaN;
-      }
+    function evalF(x) { return funcF ? funcF(x, parseFloat(paramSlider.value)) : NaN; }
+    function evalG(x) { return funcG ? funcG(x, parseFloat(paramSlider.value)) : NaN; }
+    function evalDiff(fn, x) {
+      const h = 1e-5;
+      return (fn(x + h) - fn(x - h)) / (2 * h);
     }
 
-    function runFunctionAnalysis() {
-      if (!currentFunc) return;
-      const a = parseFloat(paramSlider.value);
-      const exprStr = funcInput.value.toLowerCase();
-      
-      let typeStr = "Genel Fonksiyon";
-      if (exprStr.includes("sin") || exprStr.includes("cos") || exprStr.includes("tan")) typeStr = "Trigonometrik Fonksiyon";
-      else if (exprStr.includes("exp") || exprStr.includes("e^")) typeStr = "Üstel Fonksiyon";
-      else if (exprStr.includes("log") || exprStr.includes("ln")) typeStr = "Logaritmik Fonksiyon";
-      else if (exprStr.includes("^3")) typeStr = "3. Dereceden Polinom (Kübik)";
-      else if (exprStr.includes("^2")) typeStr = "2. Dereceden Polinom (Parabol)";
-      else if (exprStr.includes("x") && !exprStr.includes("^")) typeStr = "Doğrusal (Lineer) Fonksiyon";
-
-      let isEven = true, isOdd = true;
-      for (let testX of [0.5, 1.2, 2.5]) {
-        let f_pos = evaluateFunc(testX, a);
-        let f_neg = evaluateFunc(-testX, a);
-        if (isNaN(f_pos) || isNaN(f_neg)) { isEven = false; isOdd = false; break; }
-        if (Math.abs(f_pos - f_neg) > 1e-3) isEven = false;
-        if (Math.abs(f_pos + f_neg) > 1e-3) isOdd = false;
+    // Belirli İntegral Hesabı (Simpson Kuralı)
+    function calculateIntegral(a, b) {
+      if (!funcF || isNaN(a) || isNaN(b) || a === b) return 0;
+      const n = 200; // Çift sayı
+      const h = (b - a) / n;
+      let sum = evalF(a) + evalF(b);
+      for (let i = 1; i < n; i++) {
+        const x = a + i * h;
+        sum += evalF(x) * (i % 2 === 0 ? 2 : 4);
       }
-      let symmetryStr = isEven ? "Çift (y-eksenine göre simetrik)" : (isOdd ? "Tek (orijine göre simetrik)" : "Simetrisi Yok");
+      return (sum * h) / 3;
+    }
 
-      let yIntercept = evaluateFunc(0, a);
-      let yIntStr = (!isNaN(yIntercept) && isFinite(yIntercept)) ? `(0, ${yIntercept.toFixed(2)})` : "Tanımsız";
-
+    // Analiz & Kesişim Tespiti
+    function runAnalysis() {
+      if (!funcF) return;
       detectedRoots = [];
       detectedExtrema = [];
-      const minX = toMathX(0);
-      const maxX = toMathX(width);
-      const step = (maxX - minX) / 1000;
-      const h = 1e-5;
+      detectedIntersections = [];
 
-      let prevY = evaluateFunc(minX, a);
-      let prevDy = (evaluateFunc(minX + h, a) - evaluateFunc(minX - h, a)) / (2 * h);
+      const minX = toMathX(0), maxX = toMathX(width);
+      const step = (maxX - minX) / 800;
+
+      let prevY = evalF(minX);
+      let prevDy = evalDiff(evalF, minX);
+      let prevDiffFG = funcG ? (evalF(minX) - evalG(minX)) : NaN;
 
       for (let x = minX; x <= maxX; x += step) {
-        let y = evaluateFunc(x, a);
-        let dy = (evaluateFunc(x + h, a) - evaluateFunc(x - h, a)) / (2 * h);
+        const y = evalF(x);
+        const dy = evalDiff(evalF, x);
 
+        // Kök Tespiti
         if (prevY * y < 0 && Math.abs(y - prevY) < 10) {
-          let rootX = x - y * (step / (y - prevY));
-          if (!detectedRoots.some(r => Math.abs(r - rootX) < 0.2)) {
-            detectedRoots.push(rootX);
-          }
+          const rootX = x - y * (step / (y - prevY));
+          if (!detectedRoots.some(r => Math.abs(r - rootX) < 0.2)) detectedRoots.push(rootX);
         }
 
+        // Ekstremum Tespiti
         if (prevDy * dy < 0 && Math.abs(dy - prevDy) < 5) {
-          let extX = x;
-          let extY = evaluateFunc(extX, a);
-          let extType = prevDy > 0 ? "Yerel Maksimum" : "Yerel Minimum";
-          if (!detectedExtrema.some(e => Math.abs(e.x - extX) < 0.2)) {
-            detectedExtrema.push({ x: extX, y: extY, type: extType });
+          const extType = prevDy > 0 ? "Maksimum" : "Minimum";
+          if (!detectedExtrema.some(e => Math.abs(e.x - x) < 0.2)) detectedExtrema.push({ x: x, y: y, type: extType });
+        }
+
+        // Kesişim Tespiti f(x) == g(x)
+        if (funcG) {
+          const diffFG = evalF(x) - evalG(x);
+          if (prevDiffFG * diffFG < 0 && Math.abs(diffFG - prevDiffFG) < 10) {
+            const intX = x - diffFG * (step / (diffFG - prevDiffFG));
+            if (!detectedIntersections.some(pt => Math.abs(pt.x - intX) < 0.2)) {
+              detectedIntersections.push({ x: intX, y: evalF(intX) });
+            }
           }
+          prevDiffFG = diffFG;
         }
 
         prevY = y;
@@ -270,18 +337,15 @@
       }
 
       analysisContent.innerHTML = `
-        <p><strong>Tür:</strong> ${typeStr}</p>
-        <p><strong>Simetri:</strong> ${symmetryStr}</p>
-        <p><strong>y-Kesim:</strong> ${yIntStr}</p>
-        <p><strong>Kökler:</strong> ${detectedRoots.length > 0 ? detectedRoots.map(r => r.toFixed(2)).join(', ') : 'Görünür alanda yok'}</p>
-        <p><strong>Kritik Noktalar:</strong> ${detectedExtrema.length > 0 ? detectedExtrema.map(e => `${e.type}: (${e.x.toFixed(2)}, ${e.y.toFixed(2)})`).join('<br>') : 'Yok'}</p>
+        <p><strong>$f(x)$ Kökleri:</strong> ${detectedRoots.length ? detectedRoots.map(r => r.toFixed(2)).join(', ') : 'Yok'}</p>
+        <p><strong>$f(x)$ Ekstremumlar:</strong> ${detectedExtrema.length ? detectedExtrema.map(e => `${e.type}: (${e.x.toFixed(1)}, ${e.y.toFixed(1)})`).join('<br>') : 'Yok'}</p>
+        ${funcG ? `<p><strong>Kesişim Noktaları:</strong> ${detectedIntersections.length ? detectedIntersections.map(pt => `(${pt.x.toFixed(2)}, ${pt.y.toFixed(2)})`).join(', ') : 'Yok'}</p>` : ''}
       `;
       analysisPanel.classList.remove('hidden');
-
-      scanProgress = 0;
       isAnalyzing = true;
     }
 
+    // Çizim Rutinleri
     function drawGrid() {
       ctx.clearRect(0, 0, width, height);
       const roughGridSize = 60;
@@ -290,148 +354,154 @@
       if (scale * unit < 30) unit *= 2.5;
 
       const step = unit * scale;
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#1e293b';
-      ctx.fillStyle = '#64748b';
-      ctx.font = '10px monospace';
+      ctx.lineWidth = 1; ctx.strokeStyle = '#1e293b'; ctx.fillStyle = '#64748b'; ctx.font = '10px monospace';
 
       const startX = origin.x % step;
       for (let x = startX; x < width; x += step) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
         const mathX = Number(toMathX(x).toFixed(2));
         if (Math.abs(mathX) > 1e-4) ctx.fillText(mathX, x + 4, origin.y - 4);
       }
 
       const startY = origin.y % step;
       for (let y = startY; y < height; y += step) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
         const mathY = Number(toMathY(y).toFixed(2));
         if (Math.abs(mathY) > 1e-4) ctx.fillText(mathY, origin.x + 4, y - 4);
       }
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2; ctx.strokeStyle = '#475569';
       ctx.beginPath();
       ctx.moveTo(0, origin.y); ctx.lineTo(width, origin.y);
       ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, height);
       ctx.stroke();
     }
 
-    function drawCurves() {
-      if (!currentFunc) return;
+    function drawIntegralArea() {
+      if (!showIntegralCheckbox.checked || !funcF) {
+        integralResult.textContent = '';
+        return;
+      }
+      const a = parseFloat(intAInput.value);
+      const b = parseFloat(intBInput.value);
+      if (isNaN(a) || isNaN(b)) return;
 
-      const a = parseFloat(paramSlider.value);
-      const showDerivative = showDerivativeCheckbox.checked;
-      const h = 1e-5;
+      const val = calculateIntegral(Math.min(a, b), Math.max(a, b));
+      integralResult.textContent = `Alan = ${val.toFixed(4)}`;
 
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = '#38bdf8';
+      const startPx = Math.max(0, toScreenX(Math.min(a, b)));
+      const endPx = Math.min(width, toScreenX(Math.max(a, b)));
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(startPx, origin.y);
+
+      for (let px = startPx; px <= endPx; px += 1) {
+        const y = evalF(toMathX(px));
+        if (!isNaN(y) && isFinite(y)) ctx.lineTo(px, toScreenY(y));
+      }
+      ctx.lineTo(endPx, origin.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawCurve(fn, color, isDashed = false) {
+      if (!fn) return;
+      ctx.lineWidth = 2.5; ctx.strokeStyle = color;
+      if (isDashed) ctx.setLineDash([4, 4]); else ctx.setLineDash([]);
       ctx.beginPath();
 
       let started = false;
       for (let px = 0; px <= width; px += 1) {
         const x = toMathX(px);
-        const y = evaluateFunc(x, a);
-
-        if (isNaN(y) || !isFinite(y) || Math.abs(y) > 1e4) {
-          started = false;
-          continue;
-        }
-
+        const y = fn(x);
+        if (isNaN(y) || !isFinite(y) || Math.abs(y) > 1e4) { started = false; continue; }
         const py = toScreenY(y);
-        if (!started) {
-          ctx.moveTo(px, py);
-          started = true;
-        } else {
-          ctx.lineTo(px, py);
-        }
+        if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
       }
       ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
-      if (showDerivative) {
-        ctx.lineWidth = 1.8;
-        ctx.strokeStyle = '#f43f5e';
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        started = false;
-        for (let px = 0; px <= width; px += 2) {
-          const x = toMathX(px);
-          const dy = (evaluateFunc(x + h, a) - evaluateFunc(x - h, a)) / (2 * h);
-          if (isNaN(dy) || !isFinite(dy) || Math.abs(dy) > 1e4) {
-            started = false;
-            continue;
-          }
-          const py = toScreenY(dy);
-          if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
-        }
-        ctx.stroke();
-        ctx.setLineDash([]);
+    function drawTangentLine() {
+      if (!enableTangentCheckbox.checked || tangentX0 === null || !funcF) {
+        tangentHud.classList.add('hidden');
+        return;
       }
+      const x0 = tangentX0;
+      const y0 = evalF(x0);
+      const m = evalDiff(evalF, x0);
 
-      if (isAnalyzing) {
-        const currentScanPx = scanProgress * width;
+      if (isNaN(y0) || isNaN(m)) return;
 
-        if (scanProgress <= 1.0) {
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
-          ctx.setLineDash([6, 3]);
-          ctx.beginPath();
-          ctx.moveTo(currentScanPx, 0);
-          ctx.lineTo(currentScanPx, height);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
+      // Teğet Doğrusu Çizimi: y - y0 = m(x - x0) => y = m(x - x0) + y0
+      const tangentFn = (x) => m * (x - x0) + y0;
+      drawCurve(tangentFn, '#eab308', true);
 
-        detectedRoots.forEach(r => {
-          const px = toScreenX(r);
-          if (px <= currentScanPx || scanProgress > 1.0) {
-            const py = toScreenY(0);
-            ctx.fillStyle = '#10b981';
-            ctx.beginPath();
-            ctx.arc(px, py, 6, 0, Math.PI * 2);
-            ctx.fill();
+      // Teğet Noktası Vurgusu
+      const px = toScreenX(x0), py = toScreenY(y0);
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
 
-            ctx.font = '11px monospace';
-            ctx.fillText(`Kök: ${r.toFixed(2)}`, px - 25, py - 12);
-          }
-        });
+      // HUD Güncellemesi
+      tangentHud.classList.remove('hidden');
+      tangentHud.innerHTML = `Teğet: x₀=${x0.toFixed(2)}, y₀=${y0.toFixed(2)}<br>Eğim (m = f'): ${m.toFixed(2)}`;
+    }
 
-        detectedExtrema.forEach(e => {
-          const px = toScreenX(e.x);
-          if (px <= currentScanPx || scanProgress > 1.0) {
-            const py = toScreenY(e.y);
-            ctx.fillStyle = '#f59e0b';
-            ctx.beginPath();
-            ctx.arc(px, py, 6, 0, Math.PI * 2);
-            ctx.fill();
+    function drawHighlights() {
+      if (!isAnalyzing) return;
 
-            ctx.font = '11px monospace';
-            ctx.fillText(`${e.type.split(' ')[1]}: (${e.x.toFixed(1)}, ${e.y.toFixed(1)})`, px + 8, py - 6);
-          }
-        });
-      }
+      // Kökler
+      detectedRoots.forEach(r => {
+        const px = toScreenX(r), py = toScreenY(0);
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText(`Kök: ${r.toFixed(2)}`, px - 25, py - 10);
+      });
+
+      // Ekstremumlar
+      detectedExtrema.forEach(e => {
+        const px = toScreenX(e.x), py = toScreenY(e.y);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText(`${e.type}: (${e.x.toFixed(1)}, ${e.y.toFixed(1)})`, px + 8, py - 6);
+      });
+
+      // Kesişimler
+      detectedIntersections.forEach(pt => {
+        const px = toScreenX(pt.x), py = toScreenY(pt.y);
+        ctx.fillStyle = '#06b6d4';
+        ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText(`Kesişim: (${pt.x.toFixed(2)}, ${pt.y.toFixed(2)})`, px + 8, py + 14);
+      });
     }
 
     function draw() {
       drawGrid();
-      drawCurves();
+      drawIntegralArea();
+      drawCurve(evalF, '#38bdf8'); // f(x)
+      if (funcG) drawCurve(evalG, '#a855f7'); // g(x)
+      if (showDerivativeCheckbox.checked) drawCurve((x) => evalDiff(evalF, x), '#f43f5e', true); // f'(x)
+      drawTangentLine();
+      drawHighlights();
     }
+
+    // Etkileşimler
+    canvas.addEventListener('click', (e) => {
+      if (!enableTangentCheckbox.checked) return;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = toMathX(e.clientX - rect.left);
+      tangentX0 = clickX;
+      draw();
+    });
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-      origin.x = e.offsetX - (e.offsetX - origin.x) * zoomFactor;
-      origin.y = e.offsetY - (e.offsetY - origin.y) * zoomFactor;
-      scale *= zoomFactor;
-      if (isAnalyzing) runFunctionAnalysis();
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      origin.x = e.offsetX - (e.offsetX - origin.x) * factor;
+      origin.y = e.offsetY - (e.offsetY - origin.y) * factor;
+      scale *= factor;
+      if (isAnalyzing) runAnalysis();
       draw();
     });
 
@@ -447,8 +517,7 @@
         draw();
       }
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
       if (mx >= 0 && mx <= width && my >= 0 && my <= height) {
         coordHud.textContent = `x: ${toMathX(mx).toFixed(2)}, y: ${toMathY(my).toFixed(2)}`;
       }
@@ -456,57 +525,48 @@
 
     window.addEventListener('mouseup', () => isDragging = false);
 
-    funcInput.addEventListener('input', () => {
-      currentFunc = parseMathExpression(funcInput.value);
-      isAnalyzing = false;
-      analysisPanel.classList.add('hidden');
+    // PNG İndir
+    exportPngBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'graphstudio-grafik.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // Event Bindings
+    funcFInput.addEventListener('input', () => {
+      funcF = parseMathExpression(funcFInput.value, funcFInput);
+      if (isAnalyzing) runAnalysis();
       draw();
+    });
+    funcGInput.addEventListener('input', () => {
+      funcG = parseMathExpression(funcGInput.value, funcGInput);
+      if (isAnalyzing) runAnalysis();
+      draw();
+    });
+    [showDerivativeCheckbox, enableTangentCheckbox, showIntegralCheckbox, intAInput, intBInput].forEach(el => {
+      el.addEventListener('change', draw);
+      el.addEventListener('input', draw);
     });
 
     paramSlider.addEventListener('input', () => {
       paramValLabel.textContent = parseFloat(paramSlider.value).toFixed(1);
-      if (isAnalyzing) runFunctionAnalysis();
+      if (isAnalyzing) runAnalysis();
       draw();
     });
 
-    showDerivativeCheckbox.addEventListener('change', draw);
-
+    analyzeBtn.addEventListener('click', () => { runAnalysis(); draw(); });
     resetBtn.addEventListener('click', () => {
-      scale = 60;
-      origin = { x: width / 2, y: height / 2 };
-      draw();
-    });
-
-    analyzeBtn.addEventListener('click', runFunctionAnalysis);
-
-    presetButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        funcInput.value = btn.dataset.expr;
-        currentFunc = parseMathExpression(funcInput.value);
-        runFunctionAnalysis();
-        draw();
-      });
+      scale = 60; origin = { x: width / 2, y: height / 2 }; tangentX0 = null; draw();
     });
 
     function loop() {
-      let needsRedraw = false;
       if (isAnimating) {
         let val = parseFloat(paramSlider.value) + animSpeed;
-        if (val > parseFloat(paramSlider.max) || val < parseFloat(paramSlider.min)) {
-          animSpeed = -animSpeed;
-        }
+        if (val > parseFloat(paramSlider.max) || val < parseFloat(paramSlider.min)) animSpeed = -animSpeed;
         paramSlider.value = val;
         paramValLabel.textContent = val.toFixed(1);
-        if (isAnalyzing) runFunctionAnalysis();
-        needsRedraw = true;
-      }
-
-      if (isAnalyzing && scanProgress >= 0 && scanProgress <= 1.05) {
-        scanProgress += 0.02;
-        needsRedraw = true;
-      }
-
-      if (needsRedraw) {
+        if (isAnalyzing) runAnalysis();
         draw();
       }
       requestAnimationFrame(loop);
@@ -518,6 +578,7 @@
     });
 
     window.addEventListener('resize', resizeCanvas);
+    loadURLParams();
     resizeCanvas();
     loop();
   </script>
